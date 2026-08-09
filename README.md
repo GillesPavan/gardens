@@ -30,13 +30,13 @@ Gardens is a practical implementation of Adaequa's quality modeling approach. It
 
 ## Links
 
-- **Landing page**: https://gardens.adaequa.com (planned)
+- **Landing page**: https://gardens.adaequa.com (live)
 - **Parent organization**: https://adaequa.com (planned)
 - **Project description (shared knowledge)**: https://github.com/GillesPavan/LearningTeamAgents/blob/main/shared-knowledge/projects/gardens.md
 
 ## Status
 
-Early structuring phase — landing page and starter indicators in progress.
+Landing page is live at https://gardens.adaequa.com. Starter models and first indicators are in progress.
 
 ## License
 
