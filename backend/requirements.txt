@@ -1,0 +1,20 @@
+# Backend Gardens — Moteur de simulation d'ensoleillement
+
+# Version actuelle: implémentation pure Python (stdlib) + Pillow.
+# Les dépendances ci-dessous sont optionnelles et recommandées pour une
+# version plus robuste ou plus performante à terme.
+
+# Calcul astronomique du soleil (alternative à l'implémentation stdlib)
+# astral>=3.2
+
+# Géométrie 2D/3D et manipulation de polygones
+# shapely>=2.0
+
+# Grilles et calculs numériques
+# numpy>=1.24
+
+# Rendu scientifique (alternatives à Pillow)
+# matplotlib>=3.7
+
+# Déjà utilisé et généralement présent sur les systèmes Debian/Ubuntu
+Pillow>=9.0

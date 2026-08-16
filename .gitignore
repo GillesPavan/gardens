@@ -11,3 +11,11 @@ Thumbs.db
 # Temporary files
 *.tmp
 *.log
+
+# Backend
+backend/.venv/
+backend/output/
+backend/__pycache__/
+backend/engine/__pycache__/
+*.pyc
+
