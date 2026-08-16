@@ -8,12 +8,13 @@ Endpoints:
 
 from __future__ import annotations
 
+import base64
 import io
 import json
 import tempfile
 from datetime import date
 from pathlib import Path
-from typing import List
+from typing import Any, Dict, List
 
 from PIL import Image, ExifTags
 from PIL.ExifTags import GPSTAGS
@@ -21,12 +22,12 @@ from PIL.ExifTags import GPSTAGS
 # Ces imports nécessitent FastAPI/uvicorn (voir requirements.txt)
 try:
     from fastapi import FastAPI, File, Form, HTTPException, UploadFile
-    from fastapi.responses import FileResponse, JSONResponse
+    from fastapi.middleware.cors import CORSMiddleware
+    from fastapi.responses import JSONResponse
     HAS_FASTAPI = True
 except ImportError:  # pragma: no cover
-    FastAPI = None
-    File = Form = HTTPException = UploadFile = None
-    FileResponse = JSONResponse = None
+    FastAPI = File = Form = HTTPException = UploadFile = JSONResponse = None
+    CORSMiddleware = None
     HAS_FASTAPI = False
 
 from engine import Garden, Obstacle, run_simulation
@@ -35,6 +36,13 @@ from engine.renderer import render_heatmap
 
 if HAS_FASTAPI:
     app = FastAPI(title="Gardens Sun Engine")
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
 else:
     app = None
 
@@ -202,11 +210,26 @@ if HAS_FASTAPI:
         export_csv(result, str(csv_path))
         export_summary(result, str(summary_path))
 
+        def b64(path: Path) -> str:
+            return base64.b64encode(path.read_bytes()).decode("ascii")
+
         return {
-            "heatmap_url": "/api/download/heatmap.png",
-            "csv_url": "/api/download/heatmap.csv",
-            "summary_url": "/api/download/summary.json",
-            "summary": json.loads(summary_path.read_text(encoding="utf-8")),
+            "heatmap": {
+                "filename": "heatmap.png",
+                "mime_type": "image/png",
+                "base64": b64(heatmap_path),
+            },
+            "csv": {
+                "filename": "heatmap.csv",
+                "mime_type": "text/csv",
+                "base64": b64(csv_path),
+            },
+            "summary": {
+                "filename": "summary.json",
+                "mime_type": "application/json",
+                "base64": b64(summary_path),
+            },
+            "summary_data": json.loads(summary_path.read_text(encoding="utf-8")),
         }
 
     @app.get("/")

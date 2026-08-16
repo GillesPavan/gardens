@@ -183,6 +183,11 @@
     </header>
 
     <main>
+        <div class="card" style="padding:1rem; margin-bottom:1rem;">
+            <label style="display:inline; margin-right:0.5rem;">URL de l'API :</label>
+            <input type="text" id="apiBase" value="http://localhost:8765" style="width:auto; min-width:220px;">
+            <span class="hint">(8765 = dev server, 8000 = uvicorn)</span>
+        </div>
         <div id="status" class="status info"></div>
 
         <section class="card">
@@ -276,6 +281,7 @@
         const simSpinner = document.getElementById('simSpinner');
         const resultCard = document.getElementById('resultCard');
         const result = document.getElementById('result');
+        const apiBase = document.getElementById('apiBase');
 
         let uploadedFiles = [];
 
@@ -330,35 +336,29 @@
 
         analyzeBtn.addEventListener('click', async () => {
             analyzeBtn.disabled = true;
+            const originalText = analyzeBtn.textContent;
             analyzeBtn.textContent = 'Analyse en cours...';
 
             const formData = new FormData();
             uploadedFiles.forEach(f => formData.append('photos', f));
 
             try {
-                // En attendant le backend, on simule une réponse cohérente
-                // TODO: remplacer par fetch('/api/analyze-photos', {method:'POST', body: formData})
-                await new Promise(r => setTimeout(r, 1200));
-                const data = {
-                    location: 'Lyon, France',
-                    latitude: 45.75,
-                    longitude: 4.85,
-                    length: 4.0,
-                    width: 3.0,
-                    orientation: 0,
-                    obstacles: [
-                        { name: 'Mur Nord', direction: 0, distance: 2.5, height: 1.8, width: 5.0 },
-                    ],
-                    confidence: 'medium',
-                    missing: ['distance_exacte_mur', 'hauteur_arbre_est']
-                };
+                const resp = await fetch(`${apiBase.value}/api/analyze-photos`, {
+                    method: 'POST',
+                    body: formData,
+                });
+                if (!resp.ok) {
+                    const err = await resp.json().catch(() => ({}));
+                    throw new Error(err.error || `HTTP ${resp.status}`);
+                }
+                const data = await resp.json();
                 fillForm(data);
-                showStatus('Analyse terminée. Vérifie les données pré-remplies.');
+                showStatus(`Analyse terminée. Confiance : ${data.confidence}. Vérifie les données pré-remplies.`);
             } catch (err) {
                 showStatus('Erreur lors de l\'analyse : ' + err.message, 'error');
             } finally {
                 analyzeBtn.disabled = false;
-                analyzeBtn.textContent = 'Analyser les photos';
+                analyzeBtn.textContent = originalText;
             }
         });
 
@@ -445,16 +445,19 @@
             const payload = buildPayload();
 
             try {
-                // TODO: remplacer par fetch('/api/simulate', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload)})
-                await new Promise(r => setTimeout(r, 1500));
+                const resp = await fetch(`${apiBase.value}/api/simulate`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload),
+                });
+                if (!resp.ok) {
+                    const err = await resp.json().catch(() => ({}));
+                    throw new Error(err.error || `HTTP ${resp.status}`);
+                }
+                const data = await resp.json();
+                renderResult(data);
                 resultCard.classList.remove('hidden');
-                result.innerHTML = `
-                    <p><strong>Simulation prête.</strong></p>
-                    <p>Payload envoyé :</p>
-                    <pre style="background:#f4f4f4;padding:1rem;border-radius:6px;overflow:auto;font-size:0.85rem;">${JSON.stringify(payload, null, 2)}</pre>
-                    <p class="hint">Le backend renverra ici la heatmap, le CSV et le JSON.</p>
-                `;
-                showStatus('Simulation lancée. En attente du backend...');
+                showStatus('Simulation terminée.');
             } catch (err) {
                 showStatus('Erreur : ' + err.message, 'error');
             } finally {
@@ -462,6 +465,28 @@
                 simulateBtn.disabled = false;
             }
         });
+
+        function renderResult(data) {
+            const heatmap = data.heatmap;
+            const csv = data.csv;
+            const summary = data.summary;
+            const summaryData = data.summary_data || {};
+
+            result.innerHTML = `
+                <p><strong>Résultats</strong></p>
+                <ul>
+                    <li>Ensoleillement max : ${summaryData.max_sun_hours ?? '-'} h</li>
+                    <li>Ensoleillement moyen : ${summaryData.average_sun_hours ?? '-'} h</li>
+                    <li>Ensoleillement théorique : ${summaryData.total_daylight_hours ?? '-'} h</li>
+                    <li>Grille : ${(summaryData.grid || []).join('×')}</li>
+                </ul>
+                <img src="data:${heatmap.mime_type};base64,${heatmap.base64}" alt="Heatmap d'ensoleillement">
+                <p style="margin-top:1rem;">
+                    <a class="btn" href="data:${csv.mime_type};base64,${csv.base64}" download="${csv.filename}">Télécharger CSV</a>
+                    <a class="btn btn-secondary" href="data:${summary.mime_type};base64,${summary.base64}" download="${summary.filename}">Télécharger JSON</a>
+                </p>
+            `;
+        }
 
         function buildPayload() {
             let orientation = parseFloat(orientationSelect.value);

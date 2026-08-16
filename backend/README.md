@@ -49,9 +49,23 @@ pip install -r requirements.txt
 
 ```bash
 cd gardens/backend
-source .venv/bin/activate
 python3 demo.py
 ```
+
+> `demo.py` fonctionne avec seulement Pillow (déjà présent sur la plupart des systèmes).
+
+### Développement frontend-backend (sans FastAPI)
+
+Pour tester `site/app.html` connecté aux endpoints sans installer de dépendances :
+
+```bash
+cd gardens/backend
+python3 dev_server.py
+```
+
+Puis ouvrir `http://localhost:8765/app.html` dans un navigateur.
+
+Le serveur de développement utilise uniquement la bibliothèque standard + Pillow.
 
 Génère dans `output/` :
 - `heatmap.png` : heatmap d'ensoleillement
@@ -59,11 +73,12 @@ Génère dans `output/` :
 - `summary.json` : récapitulatif JSON
 - `shadow_XX.png` : frames de l'ombre à différents moments
 
-### API web
+### API web (FastAPI)
 
 ```bash
 cd gardens/backend
 source .venv/bin/activate
+pip install -r requirements.txt
 uvicorn api:app --reload --host 0.0.0.0 --port 8000
 ```
 
@@ -114,5 +129,5 @@ render_heatmap(result, "output/ma_heatmap.png")
 - Remplacer l'implémentation stdlib du soleil par `astral`.
 - Remplacer la géométrie maison par `shapely` pour plus de robustesse.
 - Intégrer un modèle de vision dans `/api/analyze-photos` pour détecter automatiquement les obstacles et leurs dimensions.
-- Ajouter un endpoint de téléchargement des fichiers générés.
-- Frontend : connecter `site/app.html` aux endpoints réels.
+- Stocker les résultats côté serveur et proposer des URLs de téléchargement persistantes.
+- Déployer le backend sur `gardens.adaequa.com`.
