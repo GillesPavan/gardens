@@ -8,7 +8,8 @@ Fournir un pipeline automatisé, sans Blender, capable de :
 - calculer la position du soleil à n'importe quelle date/heure
 - projeter les ombres des obstacles sur le potager
 - générer une heatmap d'ensoleillement
-- exporter les résultats en PNG/CSV
+- exporter les résultats en PNG/CSV/JSON
+- s'intégrer à une application web via une API FastAPI
 
 ## Structure
 
@@ -19,35 +20,58 @@ backend/
 │   ├── sun.py           # Calculs astronomiques de la position du soleil
 │   ├── geometry.py      # Géométrie 2D (polygones, intersections, ombres)
 │   ├── simulation.py    # Orchestration de la simulation
-│   └── renderer.py      # Rendu des heatmaps et frames
-├── demo.py              # Exemple de simulation
-├── output/              # Résultats générés
+│   ├── renderer.py      # Rendu des heatmaps et frames
+│   └── exporter.py      # Export CSV/JSON
+├── api.py               # API FastAPI (upload de photos + simulation)
+├── demo.py              # Exemple de simulation en ligne de commande
+├── output/              # Résultats générés (ignoré par git)
 ├── requirements.txt
 └── README.md
 ```
 
-## Dépendances
+## Installation
 
-Le moteur fonctionne principalement avec la **bibliothèque standard Python** et **Pillow** pour le rendu.
-
-```bash
-pip install -r requirements.txt
-```
-
-> Sur Debian/Ubuntu récent, préférez un environnement virtuel (`python3 -m venv .venv`) car l'environnement système est `externally-managed`.
-
-## Utilisation
-
-### Démonstration
+Le moteur de base fonctionne avec la **bibliothèque standard Python** et **Pillow**.
+L'API web nécessite **FastAPI** et **uvicorn**.
 
 ```bash
 cd gardens/backend
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
+
+> Sur Debian/Ubuntu récent, l'environnement système est `externally-managed` : utilise obligatoirement un venv.
+
+## Utilisation
+
+### Démonstration en ligne de commande
+
+```bash
+cd gardens/backend
+source .venv/bin/activate
 python3 demo.py
 ```
 
 Génère dans `output/` :
 - `heatmap.png` : heatmap d'ensoleillement
-- `shadow_XX.png` : frames de l'ombre à différents moments de la journée
+- `heatmap.csv` : grille de points exportée
+- `summary.json` : récapitulatif JSON
+- `shadow_XX.png` : frames de l'ombre à différents moments
+
+### API web
+
+```bash
+cd gardens/backend
+source .venv/bin/activate
+uvicorn api:app --reload --host 0.0.0.0 --port 8000
+```
+
+Endpoints :
+
+- `POST /api/analyze-photos` — upload de photos, extraction EXIF GPS + estimation par défaut
+- `POST /api/simulate` — lance la simulation et retourne les métadonnées des fichiers générés
+- `GET /` — message de bienvenue
 
 ### API Python
 
@@ -89,5 +113,6 @@ render_heatmap(result, "output/ma_heatmap.png")
 
 - Remplacer l'implémentation stdlib du soleil par `astral`.
 - Remplacer la géométrie maison par `shapely` pour plus de robustesse.
-- Ajouter un export CSV et PDF.
-- Ajouter un endpoint FastAPI pour intégration web.
+- Intégrer un modèle de vision dans `/api/analyze-photos` pour détecter automatiquement les obstacles et leurs dimensions.
+- Ajouter un endpoint de téléchargement des fichiers générés.
+- Frontend : connecter `site/app.html` aux endpoints réels.

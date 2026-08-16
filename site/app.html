@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gardens — Modéliser l'ensoleillement</title>
+    <style>
+        :root {
+            --green-dark: #1a472a;
+            --green: #2d6a4f;
+            --green-light: #d8f3dc;
+            --earth: #f4f1ea;
+            --text: #2b2b2b;
+            --muted: #5c5c5c;
+            --danger: #c0392b;
+            --shadow: rgba(0,0,0,0.08);
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: var(--text);
+            background: var(--earth);
+        }
+        header {
+            background: var(--green-dark);
+            color: white;
+            padding: 1.5rem 1rem;
+            text-align: center;
+        }
+        header h1 { margin: 0; font-size: 1.5rem; }
+        header p { margin: 0.3rem 0 0; opacity: 0.9; }
+        main {
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 1.5rem 1rem;
+        }
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 2px 8px var(--shadow);
+        }
+        h2 { margin-top: 0; color: var(--green-dark); font-size: 1.2rem; }
+        .dropzone {
+            border: 2px dashed var(--green);
+            border-radius: 10px;
+            padding: 2rem 1rem;
+            text-align: center;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .dropzone:hover, .dropzone.dragover {
+            background: var(--green-light);
+        }
+        .dropzone input { display: none; }
+        .preview-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 0.8rem;
+            margin-top: 1rem;
+        }
+        .preview {
+            position: relative;
+            aspect-ratio: 1;
+            border-radius: 8px;
+            overflow: hidden;
+            background: #eee;
+        }
+        .preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .preview button {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            background: var(--danger);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.3rem;
+            font-size: 0.95rem;
+        }
+        input, select {
+            width: 100%;
+            padding: 0.6rem;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 1rem;
+        }
+        .row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+        .btn {
+            display: inline-block;
+            background: var(--green);
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 6px;
+            font-size: 1rem;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        .btn:disabled {
+            background: #999;
+            cursor: not-allowed;
+        }
+        .btn-secondary {
+            background: white;
+            color: var(--green);
+            border: 2px solid var(--green);
+        }
+        .status {
+            padding: 1rem;
+            border-radius: 6px;
+            margin-bottom: 1rem;
+            display: none;
+        }
+        .status.info { background: var(--green-light); color: var(--green-dark); }
+        .status.error { background: #f8d7da; color: #721c24; }
+        .status.show { display: block; }
+        .obstacle {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 0.8rem;
+            background: #fafafa;
+        }
+        .obstacle-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+        .obstacle-header strong { color: var(--green-dark); }
+        .hint {
+            font-size: 0.85rem;
+            color: var(--muted);
+            margin-top: 0.2rem;
+        }
+        .hidden { display: none; }
+        #result img {
+            max-width: 100%;
+            border-radius: 8px;
+            margin-top: 1rem;
+        }
+        .spinner {
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255,255,255,0.5);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-right: 0.5rem;
+            vertical-align: middle;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>🌱 Gardens — Modéliser l'ensoleillement</h1>
+        <p>Upload tes photos, on extrait automatiquement les infos de ton potager.</p>
+    </header>
+
+    <main>
+        <div id="status" class="status info"></div>
+
+        <section class="card">
+            <h2>1. Photos du terrain</h2>
+            <div class="dropzone" id="dropzone">
+                <input type="file" id="fileInput" accept="image/*" multiple>
+                <p><strong>Clique ici</strong> ou glisse-dépose tes photos</p>
+                <p class="hint">JPG, PNG, HEIC — jusqu'à 5 photos, 10 Mo chacune</p>
+            </div>
+            <div class="preview-grid" id="previewGrid"></div>
+            <button class="btn" id="analyzeBtn" disabled>Analyser les photos</button>
+        </section>
+
+        <section class="card" id="formCard">
+            <h2>2. Données du potager</h2>
+            <p class="hint">Les champs pré-remplis viennent de l'analyse des photos. Vérifie-les et complète si besoin.</p>
+
+            <div class="form-group">
+                <label for="location">Localisation</label>
+                <input type="text" id="location" placeholder="Ville ou coordonnées GPS">
+                <p class="hint">Ex: Lyon, France ou 45.75, 4.85</p>
+            </div>
+
+            <div class="row">
+                <div class="form-group">
+                    <label for="length">Longueur (m)</label>
+                    <input type="number" id="length" step="0.1" placeholder="4">
+                </div>
+                <div class="form-group">
+                    <label for="width">Largeur (m)</label>
+                    <input type="number" id="width" step="0.1" placeholder="3">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="orientation">Orientation du côté long</label>
+                <select id="orientation">
+                    <option value="">-- sélectionner --</option>
+                    <option value="0">Nord-Sud</option>
+                    <option value="90">Est-Ouest</option>
+                    <option value="45">Nord-Est / Sud-Ouest</option>
+                    <option value="135">Sud-Est / Nord-Ouest</option>
+                    <option value="custom">Angle personnalisé</option>
+                </select>
+                <input type="number" id="orientationCustom" class="hidden" step="1" placeholder="Angle en degrés par rapport au Nord">
+            </div>
+
+            <div class="form-group">
+                <label>Obstacles détectés</label>
+                <div id="obstacles"></div>
+                <button type="button" class="btn btn-secondary" id="addObstacleBtn">+ Ajouter un obstacle</button>
+            </div>
+
+            <div class="form-group">
+                <label for="simDate">Date de simulation</label>
+                <select id="simDate">
+                    <option value="2026-06-21">Solstice d'été (21 juin)</option>
+                    <option value="2026-03-20">Équinoxe de printemps (20 mars)</option>
+                    <option value="2026-09-22">Équinoxe d'automne (22 septembre)</option>
+                    <option value="2026-12-21">Solstice d'hiver (21 décembre)</option>
+                    <option value="custom">Date personnalisée</option>
+                </select>
+                <input type="date" id="simDateCustom" class="hidden">
+            </div>
+
+            <button class="btn" id="simulateBtn">
+                <span class="spinner hidden" id="simSpinner"></span>
+                Lancer la simulation
+            </button>
+        </section>
+
+        <section class="card hidden" id="resultCard">
+            <h2>3. Résultat</h2>
+            <div id="result"></div>
+        </section>
+    </main>
+
+    <script>
+        const dropzone = document.getElementById('dropzone');
+        const fileInput = document.getElementById('fileInput');
+        const previewGrid = document.getElementById('previewGrid');
+        const analyzeBtn = document.getElementById('analyzeBtn');
+        const obstaclesContainer = document.getElementById('obstacles');
+        const addObstacleBtn = document.getElementById('addObstacleBtn');
+        const status = document.getElementById('status');
+        const orientationSelect = document.getElementById('orientation');
+        const orientationCustom = document.getElementById('orientationCustom');
+        const simDate = document.getElementById('simDate');
+        const simDateCustom = document.getElementById('simDateCustom');
+        const simulateBtn = document.getElementById('simulateBtn');
+        const simSpinner = document.getElementById('simSpinner');
+        const resultCard = document.getElementById('resultCard');
+        const result = document.getElementById('result');
+
+        let uploadedFiles = [];
+
+        function showStatus(msg, type = 'info') {
+            status.textContent = msg;
+            status.className = 'status ' + type + ' show';
+            setTimeout(() => status.classList.remove('show'), 6000);
+        }
+
+        dropzone.addEventListener('click', () => fileInput.click());
+        dropzone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropzone.classList.add('dragover');
+        });
+        dropzone.addEventListener('dragleave', () => dropzone.classList.remove('dragover'));
+        dropzone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropzone.classList.remove('dragover');
+            handleFiles(e.dataTransfer.files);
+        });
+        fileInput.addEventListener('change', () => handleFiles(fileInput.files));
+
+        function handleFiles(files) {
+            for (const file of files) {
+                if (!file.type.startsWith('image/')) continue;
+                if (uploadedFiles.length >= 5) {
+                    showStatus('Maximum 5 photos.', 'error');
+                    break;
+                }
+                uploadedFiles.push(file);
+                addPreview(file);
+            }
+            analyzeBtn.disabled = uploadedFiles.length === 0;
+        }
+
+        function addPreview(file) {
+            const div = document.createElement('div');
+            div.className = 'preview';
+            const img = document.createElement('img');
+            img.src = URL.createObjectURL(file);
+            const btn = document.createElement('button');
+            btn.textContent = '×';
+            btn.addEventListener('click', () => {
+                uploadedFiles = uploadedFiles.filter(f => f !== file);
+                div.remove();
+                analyzeBtn.disabled = uploadedFiles.length === 0;
+            });
+            div.appendChild(img);
+            div.appendChild(btn);
+            previewGrid.appendChild(div);
+        }
+
+        analyzeBtn.addEventListener('click', async () => {
+            analyzeBtn.disabled = true;
+            analyzeBtn.textContent = 'Analyse en cours...';
+
+            const formData = new FormData();
+            uploadedFiles.forEach(f => formData.append('photos', f));
+
+            try {
+                // En attendant le backend, on simule une réponse cohérente
+                // TODO: remplacer par fetch('/api/analyze-photos', {method:'POST', body: formData})
+                await new Promise(r => setTimeout(r, 1200));
+                const data = {
+                    location: 'Lyon, France',
+                    latitude: 45.75,
+                    longitude: 4.85,
+                    length: 4.0,
+                    width: 3.0,
+                    orientation: 0,
+                    obstacles: [
+                        { name: 'Mur Nord', direction: 0, distance: 2.5, height: 1.8, width: 5.0 },
+                    ],
+                    confidence: 'medium',
+                    missing: ['distance_exacte_mur', 'hauteur_arbre_est']
+                };
+                fillForm(data);
+                showStatus('Analyse terminée. Vérifie les données pré-remplies.');
+            } catch (err) {
+                showStatus('Erreur lors de l\'analyse : ' + err.message, 'error');
+            } finally {
+                analyzeBtn.disabled = false;
+                analyzeBtn.textContent = 'Analyser les photos';
+            }
+        });
+
+        function fillForm(data) {
+            if (data.location) document.getElementById('location').value = data.location;
+            if (data.length) document.getElementById('length').value = data.length;
+            if (data.width) document.getElementById('width').value = data.width;
+            if (data.orientation !== undefined) {
+                const opts = Array.from(orientationSelect.options).map(o => o.value);
+                if (opts.includes(String(data.orientation))) {
+                    orientationSelect.value = String(data.orientation);
+                } else {
+                    orientationSelect.value = 'custom';
+                    orientationCustom.classList.remove('hidden');
+                    orientationCustom.value = data.orientation;
+                }
+            }
+            obstaclesContainer.innerHTML = '';
+            (data.obstacles || []).forEach(addObstacle);
+        }
+
+        function addObstacle(obs = {}) {
+            const id = 'obs-' + Math.random().toString(36).slice(2, 8);
+            const div = document.createElement('div');
+            div.className = 'obstacle';
+            div.innerHTML = `
+                <div class="obstacle-header">
+                    <strong>Obstacle</strong>
+                    <button type="button" class="btn btn-secondary" style="padding:0.3rem 0.6rem; font-size:0.8rem;" onclick="this.closest('.obstacle').remove()">Supprimer</button>
+                </div>
+                <div class="row">
+                    <div class="form-group">
+                        <label>Type</label>
+                        <select class="obs-type">
+                            <option value="mur" ${obs.type === 'mur' ? 'selected' : ''}>Mur</option>
+                            <option value="cloture" ${obs.type === 'cloture' ? 'selected' : ''}>Clôture</option>
+                            <option value="arbre" ${obs.type === 'arbre' ? 'selected' : ''}>Arbre</option>
+                            <option value="batiment" ${obs.type === 'batiment' ? 'selected' : ''}>Bâtiment</option>
+                            <option value="autre" ${obs.type === 'autre' ? 'selected' : ''}>Autre</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Nom</label>
+                        <input type="text" class="obs-name" placeholder="ex: Mur Nord" value="${obs.name || ''}">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="form-group">
+                        <label>Direction (°)</label>
+                        <input type="number" class="obs-direction" step="1" placeholder="0=Nord, 90=Est" value="${obs.direction ?? ''}">
+                    </div>
+                    <div class="form-group">
+                        <label>Distance (m)</label>
+                        <input type="number" class="obs-distance" step="0.1" placeholder="m" value="${obs.distance ?? ''}">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="form-group">
+                        <label>Hauteur (m)</label>
+                        <input type="number" class="obs-height" step="0.1" placeholder="m" value="${obs.height ?? ''}">
+                    </div>
+                    <div class="form-group">
+                        <label>Largeur (m)</label>
+                        <input type="number" class="obs-width" step="0.1" placeholder="m" value="${obs.width ?? ''}">
+                    </div>
+                </div>
+            `;
+            obstaclesContainer.appendChild(div);
+        }
+
+        addObstacleBtn.addEventListener('click', () => addObstacle());
+
+        orientationSelect.addEventListener('change', () => {
+            orientationCustom.classList.toggle('hidden', orientationSelect.value !== 'custom');
+        });
+        simDate.addEventListener('change', () => {
+            simDateCustom.classList.toggle('hidden', simDate.value !== 'custom');
+        });
+
+        simulateBtn.addEventListener('click', async () => {
+            simSpinner.classList.remove('hidden');
+            simulateBtn.disabled = true;
+
+            const payload = buildPayload();
+
+            try {
+                // TODO: remplacer par fetch('/api/simulate', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload)})
+                await new Promise(r => setTimeout(r, 1500));
+                resultCard.classList.remove('hidden');
+                result.innerHTML = `
+                    <p><strong>Simulation prête.</strong></p>
+                    <p>Payload envoyé :</p>
+                    <pre style="background:#f4f4f4;padding:1rem;border-radius:6px;overflow:auto;font-size:0.85rem;">${JSON.stringify(payload, null, 2)}</pre>
+                    <p class="hint">Le backend renverra ici la heatmap, le CSV et le JSON.</p>
+                `;
+                showStatus('Simulation lancée. En attente du backend...');
+            } catch (err) {
+                showStatus('Erreur : ' + err.message, 'error');
+            } finally {
+                simSpinner.classList.add('hidden');
+                simulateBtn.disabled = false;
+            }
+        });
+
+        function buildPayload() {
+            let orientation = parseFloat(orientationSelect.value);
+            if (orientationSelect.value === 'custom') orientation = parseFloat(orientationCustom.value);
+
+            let date = simDate.value;
+            if (date === 'custom') date = simDateCustom.value;
+
+            const obstacles = Array.from(obstaclesContainer.querySelectorAll('.obstacle')).map(div => ({
+                type: div.querySelector('.obs-type').value,
+                name: div.querySelector('.obs-name').value,
+                direction_deg: parseFloat(div.querySelector('.obs-direction').value),
+                distance_m: parseFloat(div.querySelector('.obs-distance').value),
+                height_m: parseFloat(div.querySelector('.obs-height').value),
+                width_m: parseFloat(div.querySelector('.obs-width').value) || 0.3,
+                depth_m: 0.3,
+            }));
+
+            return {
+                location: document.getElementById('location').value,
+                length_m: parseFloat(document.getElementById('length').value),
+                width_m: parseFloat(document.getElementById('width').value),
+                orientation_deg: orientation,
+                bed_height_m: 0.3,
+                day: date,
+                grid_resolution: 50,
+                step_minutes: 30,
+                obstacles,
+            };
+        }
+    </script>
+</body>
+</html>
