@@ -29,3 +29,6 @@ id,name,country,latitude,longitude,capacity_mwp,crop_type,pv_technology,status,y
 28,Vitznau Alpine AgriPV,Switzerland,47.0121,8.4832,0.2,Pâturage alpin & Fourrage,Panneaux neige/bifaciaux,Opérationnel,2022
 29,Sunza Agrivoltaic Project,Kenya,0.5142,35.2691,0.2,Horticulture & Ombrage,Panneaux suspendus pour ombrage,Opérationnel,2022
 30,Infigen Capital Sheep Solar,Australia,-35.1281,147.3621,50.0,Pâturage ovin intensif,Trackers mono-axe,Opérationnel,2019
+31,Vitisolar,France,44.7940,-0.5809,0.15,Vigne (Merlot),Structure surélevée orientable (Ampex/ArcelorMittal Exosun),Opérationnel (démonstrateur R&D),2023
+32,Sun'Agri Tresserre,France,42.5637,2.8298,2.2,Vigne (Marselan/Chardonnay/Grenache blanc),Trackers dynamiques orientables (agrivoltaïsme dynamique Sun'Agri),Opérationnel,2021
+33,Saint-Hilaire-la-Treille,France,46.2519,1.3194,82.0,Élevage ovin (collectif Sol'Ouailles),Centrale PV au sol fixe,En instruction (avis Ae défavorable partiel 02/2026),2026

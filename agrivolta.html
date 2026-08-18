@@ -4,10 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Carte Mondiale de l'Agrivoltaïsme</title>
-    
+
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    
+
     <style>
         body {
             margin: 0;
@@ -39,6 +39,10 @@
             font-size: 13px;
             color: #555;
         }
+        .info-panel .error {
+            color: #c0392b;
+            font-weight: bold;
+        }
         .popup-title {
             font-weight: bold;
             font-size: 15px;
@@ -55,8 +59,9 @@
 
     <div class="info-panel">
         <h2>Agrivoltaïsme Mondial</h2>
-        <p><strong>30 sites représentatifs</strong> déployés à travers le monde.</p>
-        <p> Cliquez sur un marqueur pour afficher la puissance, le type de culture et la technologie PV.</p>
+        <p><strong id="site-count">Chargement des sites…</strong></p>
+        <p>Cliquez sur un marqueur pour afficher la puissance, le type de culture et la technologie PV.</p>
+        <p id="status-msg"></p>
     </div>
 
     <div id="map"></div>
@@ -74,70 +79,136 @@
             attribution: '© OpenStreetMap contributors'
         }).addTo(map);
 
-        // Données des 30 sites agrivoltaïques
-        const sites = [
-            { id: 1, name: "Baowu Ningxia Solar Sharing", country: "Chine", lat: 38.1254, lng: 106.3128, capacity: 1000.0, crop: "Baies de Goji", tech: "Structures fixes surélevées (2.9m)", year: 2020 },
-            { id: 2, name: "Zhejiang Tea Agrivoltaic", country: "Chine", lat: 29.8711, lng: 121.5432, capacity: 200.0, crop: "Thé", tech: "Structures fixes haute portée", year: 2019 },
-            { id: 3, name: "Gobi Desert Agri-PV Hub", country: "Chine", lat: 40.1423, lng: 94.6612, capacity: 650.0, crop: "Cultures maraîchères & Élevage ovin", tech: "Trackers 1 axe", year: 2021 },
-            { id: 4, name: "Chiba Solar Sharing Farm", country: "Japon", lat: 35.6073, lng: 140.1065, capacity: 1.2, crop: "Légumes de culture & Arachides", tech: "Panneaux suspendus espacés", year: 2018 },
-            { id: 5, name: "Saku City AgriPV", country: "Japon", lat: 36.2483, lng: 138.4751, capacity: 2.5, crop: "Riz", tech: "Structures légères surélevées", year: 2020 },
-            { id: 6, name: "Fukushima Solar Sharing", country: "Japon", lat: 37.7608, lng: 140.4748, capacity: 12.0, crop: "Pâturage ovin & Arboriculture", tech: "Ombrage dynamique", year: 2021 },
-            { id: 7, name: "Tessenderlo Raspberry AgriPV", country: "Belgique", lat: 51.0681, lng: 5.0883, capacity: 0.7, crop: "Framboises & Petits fruits", tech: "Semi-transparents au-dessus des serres", year: 2020 },
-            { id: 8, name: "Babberich AgriPV", country: "Pays-Bas", lat: 51.9054, lng: 6.1132, capacity: 2.7, crop: "Framboises & Mûres", tech: "Panneaux semi-transparents fixes", year: 2020 },
-            { id: 9, name: "Donaueschingen AgriPV", country: "Allemagne", lat: 47.9523, lng: 8.4981, capacity: 4.1, crop: "Céréales & Maraîchage", tech: "Panneaux bifaciaux verticaux (Est-Ouest)", year: 2020 },
-            { id: 10, name: "Hegarland AgriPV", country: "Allemagne", lat: 51.4821, lng: 7.2145, capacity: 1.5, crop: "Arboriculture (Pommes)", tech: "Trackers dynamiques", year: 2021 },
-            { id: 11, name: "Lamarque Agrivoltaïsme", country: "France", lat: 45.0932, lng: -0.7145, capacity: 2.1, crop: "Vigne (Bordeaux)", tech: "Trackers dynamiques orientables", year: 2021 },
-            { id: 12, name: "Piolenc Agrivoltaïque", country: "France", lat: 44.1783, lng: 4.7612, capacity: 1.8, crop: "Arboriculture (Pêches/Nectarines)", tech: "Trackers Agrivoltaïques dynamiques", year: 2020 },
-            { id: 13, name: "La Puy-Sainte-Réparade", country: "France", lat: 43.6641, lng: 5.4382, capacity: 3.0, crop: "Élevage caprin & Maraîchage", tech: "Structures fixes surélevées", year: 2022 },
-            { id: 14, name: "Amance AgriPV", country: "France", lat: 48.3842, lng: 6.3211, capacity: 2.4, crop: "Grandes cultures (Blé/Orge)", tech: "Trackers mono-axe surélevés", year: 2021 },
-            { id: 15, name: "Monticelli d'Ongina", country: "Italie", lat: 45.0912, lng: 9.9321, capacity: 9.5, crop: "Maïs & Grandes cultures", tech: "Trackers mono-axe haute portée", year: 2012 },
-            { id: 16, name: "Taranto AgriPV", country: "Italie", lat: 40.4761, lng: 17.2432, capacity: 15.0, crop: "Oliviers & Élevage ovin", tech: "Panneaux fixes surélevés", year: 2022 },
-            { id: 17, name: "Teruel AgriPV Project", country: "Espagne", lat: 40.3451, lng: -1.1082, capacity: 50.0, crop: "Pâturage ovin & Grandes cultures", tech: "Trackers 1 axe bifaciaux", year: 2022 },
-            { id: 18, name: "Alqueva Agri-Floating & Land", country: "Portugal", lat: 38.1962, lng: -7.5321, capacity: 5.0, crop: "Culture maraîchère & Pâturage", tech: "Fixes surélevés", year: 2021 },
-            { id: 19, name: "Jack's Solar Garden", country: "États-Unis", lat: 40.1342, lng: -105.1321, capacity: 1.2, crop: "Maraîchage (25+ variétés)", tech: "Bifaciaux sur trackers à 2.5m", year: 2020 },
-            { id: 20, name: "Oregon State University Agrivoltaic", country: "États-Unis", lat: 44.5671, lng: -123.2812, capacity: 0.5, crop: "Pâturage ovin & Fourrage", tech: "Structures fixes inclinées", year: 2013 },
-            { id: 21, name: "Kavreparti Agri-PV", country: "Népal", lat: 27.5321, lng: 85.5432, capacity: 0.1, crop: "Légumes de montagne", tech: "Structures légères en bambou/acier", year: 2019 },
-            { id: 22, name: "Cochin Airport Solar Farm", country: "Inde", lat: 10.1521, lng: 76.4012, capacity: 40.0, crop: "Légumes verts & Maraîchage", tech: "Panneaux fixes au sol adaptés", year: 2015 },
-            { id: 23, name: "Gujarat Agri-Solar Project", country: "Inde", lat: 23.2154, lng: 72.6321, capacity: 5.0, crop: "Cultures vivrières locales", tech: "Pieux surélevés au-dessus des canaux", year: 2018 },
-            { id: 24, name: "Bhadla Agri-Solar Section", country: "Inde", lat: 27.5381, lng: 71.9142, capacity: 100.0, crop: "Élevage ovin & Caprin", tech: "Panneaux fixes désertiques", year: 2020 },
-            { id: 25, name: "El Yali Agrivoltaico", country: "Chili", lat: 33.7512, lng: -71.7231, capacity: 3.0, crop: "Cultures maraîchères en zone aride", tech: "Panneaux fixes ombrageants", year: 2019 },
-            { id: 26, name: "Paiporta AgriPV Pilot", country: "Espagne", lat: 39.4281, lng: -0.4182, capacity: 0.3, crop: "Agrumes (Mandarines)", tech: "Trackers surélevés", year: 2021 },
-            { id: 27, name: "Groningen Vertical AgriPV", country: "Pays-Bas", lat: 53.2191, lng: 6.5682, capacity: 1.1, crop: "Herbage & Pâturage", tech: "Modules bifaciaux verticaux", year: 2021 },
-            { id: 28, name: "Vitznau Alpine AgriPV", country: "Suisse", lat: 47.0121, lng: 8.4832, capacity: 0.2, crop: "Pâturage alpin & Fourrage", tech: "Panneaux neige/bifaciaux", year: 2022 },
-            { id: 29, name: "Sunza Agrivoltaic Project", country: "Kenya", lat: 0.5142, lng: 35.2691, capacity: 0.2, crop: "Horticulture & Ombrage", tech: "Panneaux suspendus pour ombrage", year: 2022 },
-            { id: 30, name: "Infigen Capital Sheep Solar", country: "Australie", lat: -35.1281, lng: 147.3621, capacity: 50.0, crop: "Pâturage ovin intensif", tech: "Trackers mono-axe", year: 2019 }
-        ];
+        const statusMsg = document.getElementById('status-msg');
+        const siteCount = document.getElementById('site-count');
+
+        /**
+         * Parse un CSV simple (RFC 4180 light) : gère les guillemets et les virgules internes.
+         */
+        function parseCSV(text) {
+            const rows = [];
+            let row = [];
+            let cell = '';
+            let insideQuotes = false;
+
+            for (let i = 0; i < text.length; i++) {
+                const char = text[i];
+                const nextChar = text[i + 1];
+
+                if (insideQuotes) {
+                    if (char === '"' && nextChar === '"') {
+                        cell += '"';
+                        i++;
+                    } else if (char === '"') {
+                        insideQuotes = false;
+                    } else {
+                        cell += char;
+                    }
+                } else {
+                    if (char === '"') {
+                        insideQuotes = true;
+                    } else if (char === ',') {
+                        row.push(cell.trim());
+                        cell = '';
+                    } else if (char === '\n' || char === '\r') {
+                        if (cell !== '' || row.length > 0) {
+                            row.push(cell.trim());
+                            rows.push(row);
+                            row = [];
+                            cell = '';
+                        }
+                        if (char === '\r' && nextChar === '\n') i++;
+                    } else {
+                        cell += char;
+                    }
+                }
+            }
+
+            if (cell !== '' || row.length > 0) {
+                row.push(cell.trim());
+                rows.push(row);
+            }
+
+            return rows;
+        }
 
         // Fonction pour dimensionner le rayon du cercle selon la puissance (MWp)
         function getRadius(capacity) {
             return Math.max(Math.sqrt(capacity) * 2.5, 6);
         }
 
-        // Ajout des marqueurs sur la carte
-        sites.forEach(site => {
-            const circle = L.circleMarker([site.lat, site.lng], {
-                radius: getRadius(site.capacity),
-                fillColor: "#2e7d32",
-                color: "#1b5e20",
-                weight: 1.5,
-                opacity: 1,
-                fillOpacity: 0.7
-            }).addTo(map);
+        function addMarkers(sites) {
+            sites.forEach(site => {
+                const circle = L.circleMarker([site.lat, site.lng], {
+                    radius: getRadius(site.capacity),
+                    fillColor: "#2e7d32",
+                    color: "#1b5e20",
+                    weight: 1.5,
+                    opacity: 1,
+                    fillOpacity: 0.7
+                }).addTo(map);
 
-            // Création du contenu de la bulle d'information (Popup)
-            const popupContent = `
-                <div class="popup-title">${site.name}</div>
-                <div class="popup-detail">
-                    <strong>Pays :</strong> ${site.country}<br>
-                    <strong>Puissance :</strong> ${site.capacity} MWp<br>
-                    <strong>Culture/Élevage :</strong> ${site.crop}<br>
-                    <strong>Technologie PV :</strong> ${site.tech}<br>
-                    <strong>Mise en service :</strong> ${site.year}
-                </div>
-            `;
+                const popupContent = `
+                    <div class="popup-title">${site.name}</div>
+                    <div class="popup-detail">
+                        <strong>Pays :</strong> ${site.country}<br>
+                        <strong>Puissance :</strong> ${site.capacity} MWp<br>
+                        <strong>Culture/Élevage :</strong> ${site.crop}<br>
+                        <strong>Technologie PV :</strong> ${site.tech}<br>
+                        <strong>Statut :</strong> ${site.status}<br>
+                        <strong>Mise en service :</strong> ${site.year}
+                    </div>
+                `;
 
-            circle.bindPopup(popupContent);
-        });
+                circle.bindPopup(popupContent);
+            });
+        }
+
+        // Chargement dynamique du CSV
+        fetch('agrivolta.csv')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status} — impossible de charger agrivolta.csv`);
+                }
+                return response.text();
+            })
+            .then(text => {
+                const rows = parseCSV(text);
+                if (rows.length < 2) {
+                    throw new Error('Fichier CSV vide ou mal formaté');
+                }
+
+                const headers = rows[0].map(h => h.toLowerCase());
+                const idx = name => headers.indexOf(name);
+
+                const required = ['id','name','country','latitude','longitude','capacity_mwp','crop_type','pv_technology','status','year'];
+                const missing = required.filter(h => idx(h) === -1);
+                if (missing.length > 0) {
+                    throw new Error(`Colonnes manquantes dans le CSV : ${missing.join(', ')}`);
+                }
+
+                const sites = rows.slice(1).map(row => ({
+                    id: parseInt(row[idx('id')], 10),
+                    name: row[idx('name')],
+                    country: row[idx('country')],
+                    lat: parseFloat(row[idx('latitude')]),
+                    lng: parseFloat(row[idx('longitude')]),
+                    capacity: parseFloat(row[idx('capacity_mwp')]),
+                    crop: row[idx('crop_type')],
+                    tech: row[idx('pv_technology')],
+                    status: row[idx('status')],
+                    year: row[idx('year')]
+                })).filter(s => !isNaN(s.lat) && !isNaN(s.lng) && !isNaN(s.capacity));
+
+                siteCount.textContent = `${sites.length} sites représentatifs`;
+                addMarkers(sites);
+            })
+            .catch(err => {
+                console.error(err);
+                siteCount.textContent = 'Erreur de chargement';
+                statusMsg.className = 'error';
+                statusMsg.textContent = err.message;
+            });
     </script>
 </body>
 </html>
