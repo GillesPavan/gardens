@@ -1,0 +1,31 @@
+id,name,country,latitude,longitude,capacity_mwp,crop_type,pv_technology,status,year
+1,Baowu Ningxia Solar Sharing,China,38.1254,106.3128,1000.0,Baies de Goji,Structures fixes surélevées (2.9m),Opérationnel,2020
+2,Zhejiang Tea Agrivoltaic,China,29.8711,121.5432,200.0,Thé,Structures fixes fixes haute portée,Opérationnel,2019
+3,Gobi Desert Agri-PV Hub,China,40.1423,94.6612,650.0,Cultures maraîchères & Élevage ovin,Trackers 1 axe,Opérationnel,2021
+4,Chiba Solar Sharing Farm,Japan,35.6073,140.1065,1.2,Légumes de culture & Arachides,Panneaux suspendus espacés,Opérationnel,2018
+5,Saku City AgriPV,Japan,36.2483,138.4751,2.5,Riz,Structures légères surélevées,Opérationnel,2020
+6,Fukushima Solar Sharing,Japan,37.7608,140.4748,12.0,Pâturage ovin & Arboriculture,Ombrage dynamique,Opérationnel,2021
+7,Tessenderlo Raspberry AgriPV,Belgium,51.0681,5.0883,0.7,Framboises & Petits fruits,Semi-transparents au-dessus des serres,Opérationnel,2020
+8,Babberich AgriPV,Netherlands,51.9054,6.1132,2.7,Framboises & Mûres,Panneaux semi-transparents fixes,Opérationnel,2020
+9,Donaueschingen AgriPV,Germany,47.9523,8.4981,4.1,Céréales & Maraîchage,Panneaux bifaciaux verticaux (Est-Ouest),Opérationnel,2020
+10,Hegarland AgriPV,Germany,51.4821,7.2145,1.5,Arboriculture (Pommes),Trackers dynamiques,Opérationnel,2021
+11,Lamarque Agrivoltaïsme,France,45.0932,-0.7145,2.1,Vigne (Bordeaux),Trackers dynamiques orientables,Opérationnel,2021
+12,Piolenc Agrivoltaïque,France,44.1783,4.7612,1.8,Arboriculture (Pêches/Nectarines),Trackers Agrivoltaïques dynamiques,Opérationnel,2020
+13,La Puy-Sainte-Réparade,France,43.6641,5.4382,3.0,Élevage caprin & Maraîchage,Structures fixes surélevées,Opérationnel,2022
+14,Amance AgriPV,France,48.3842,6.3211,2.4,Grandes cultures (Blé/Orge),Trackers mono-axe surélevés,Opérationnel,2021
+15,Monticelli d'Ongina,Italy,45.0912,9.9321,9.5,Maïs & Grandes cultures,Trackers mono-axe haute portée,Opérationnel,2012
+16,Taranto AgriPV,Italy,40.4761,17.2432,15.0,Oliviers & Élevage ovin,Panneaux fixes surélevés,Opérationnel,2022
+17,Teruel AgriPV Project,Spain,40.3451,-1.1082,50.0,Pâturage ovin & Grandes cultures,Trackers 1 axe bifaciaux,Opérationnel,2022
+18,Alqueva Agri-Floating & Land,Portugal,38.1962,-7.5321,5.0,Culture maraîchère & Pâturage,Fixes surélevés,Opérationnel,2021
+19,Jack's Solar Garden,USA,40.1342,-105.1321,1.2,Maraîchage (25+ variétés),Bifaciaux sur trackers à 2.5m,Opérationnel,2020
+20,Oregon State University Agrivoltaic,USA,44.5671,-123.2812,0.5,Pâturage ovin & Fourrage,Structures fixes inclinées,Opérationnel,2013
+21,Kavreparti Agri-PV,Nepal,27.5321,85.5432,0.1,Légumes de montagne,Structures légères en bambou/acier,Opérationnel,2019
+22,Cochin Airport Solar Farm,India,10.1521,76.4012,40.0,Légumes verts & Maraîchage,Panneaux fixes au sol adaptés,Opérationnel,2015
+23,Gujarat Agri-Solar Project,India,23.2154,72.6321,5.0,Cultures vivrières locales,Pieux surélevés au-dessus des canaux,Opérationnel,2018
+24,Bhadla Agri-Solar Section,India,27.5381,71.9142,100.0,Élevage ovin & Caprin,Panneaux fixes désertiques,Opérationnel,2020
+25,El Yali Agrivoltaico,Chile,33.7512,-71.7231,3.0,Cultures maraîchères en zone aride,Panneaux fixes ombrageants,Opérationnel,2019
+26,Paiporta AgriPV Pilot,Spain,39.4281,-0.4182,0.3,Agrumes (Mandarines),Trackers surélevés,Opérationnel,2021
+27,Groningen Vertical AgriPV,Netherlands,53.2191,6.5682,1.1,Herbage & Pâturage,Modules bifaciaux verticaux,Opérationnel,2021
+28,Vitznau Alpine AgriPV,Switzerland,47.0121,8.4832,0.2,Pâturage alpin & Fourrage,Panneaux neige/bifaciaux,Opérationnel,2022
+29,Sunza Agrivoltaic Project,Kenya,0.5142,35.2691,0.2,Horticulture & Ombrage,Panneaux suspendus pour ombrage,Opérationnel,2022
+30,Infigen Capital Sheep Solar,Australia,-35.1281,147.3621,50.0,Pâturage ovin intensif,Trackers mono-axe,Opérationnel,2019
